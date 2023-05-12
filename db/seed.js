@@ -86,6 +86,11 @@ async function createInitialPosts() {
       title: "Firstasdfasdf Post",
       content: "This is my first post. I hope I love writing blogs as much as I love writing them."
     });
+    await createPost({
+      authorId: glamgal.id,
+      title: "Firstasdfasdf Post",
+      content: "Thissdfasdff is my first post. I hope I love writing blogs as much as I love writing them."
+    });
 
 
     
