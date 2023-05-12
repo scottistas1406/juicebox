@@ -19,6 +19,32 @@ client.connect()
     `);
     return rows;
   }
+  async function getAllPosts() {
+    const { rows } = await client.query(
+      `SELECT id, "authorID" , title, content,active
+      FROM posts;
+    `);
+    return rows;
+  }
+
+  async function createPost({
+    authorId,
+    title,
+    content
+  }) {
+    try {
+      const {rows} = await client.query(` INSERT INTO posts("authorID", title, content)
+      VALUES ($1, $2, $3)
+      RETURNING*;
+      `,[authorId,title,content]);
+      return rows
+  
+    } catch (error) {
+      throw error;
+    }
+  }
+
+
   async function createUser({
     username,
     password,
@@ -64,6 +90,34 @@ client.connect()
       throw error;
     }
   }
+  async function updatePost(id, fields = {}) {
+    const { authorID, ...otherFields } = fields;
+  
+    const setString = Object.keys(otherFields)
+      .map((key, index) => `"${key}"=$${index + 1}`)
+      .join(', ');
+  
+    if (setString.length === 0) {
+      return;
+    }
+  
+    try {
+      const { rows: [post] } = await client.query(
+        `
+        UPDATE posts
+        SET ${setString}
+        WHERE id=$${Object.keys(otherFields).length + 1}
+        RETURNING *;
+        `,
+        [...Object.values(otherFields), id]
+      );
+  
+      return post;
+    } catch (error) {
+      throw error;
+    }
+  }
+  
   
   
 
@@ -74,6 +128,9 @@ module.exports = {
   getAllUsers,
   createUser,
   updateUser,
+  updatePost,
+  getAllPosts,
+  createPost,
 };
 
 
