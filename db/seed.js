@@ -5,7 +5,16 @@ const {
   updateUser,
   updatePost,
   getAllPosts,
+  createTags,
   createPost,
+  addTagsToPost,
+  tags,
+  posts_tags,
+  getPostById
+  
+
+  
+  
   
 } = require('./index');
 
@@ -14,6 +23,8 @@ async function dropTables() {
     console.log("Starting to drop tables...");
 
     await client.query(`
+    DROP TABLE IF EXISTS posts_tags;
+    DROP TABLE IF EXISTS tags;
     DROP TABLE IF EXISTS posts;  
     DROP TABLE IF EXISTS users;
     `);
@@ -48,6 +59,22 @@ async function createTables() {
       active BOOLEAN DEFAULT true
     );
   `);
+ await client.query(`
+      CREATE TABLE tags(
+        id SERIAL PRIMARY KEY, 
+        name VARCHAR(255) UNIQUE NOT NULL  
+      );  
+ `);
+ await client.query(`
+      CREATE TABLE posts_tags(
+        id SERIAL PRIMARY KEY,
+        postId INTEGER UNIQUE NOT NULL REFERENCES posts(id),
+        tagId  INTEGER UNIQUE NOT NULL REFERENCES tags(id)
+
+
+)
+
+ `)
     
 
     console.log("Finished building tables!");
@@ -56,6 +83,8 @@ async function createTables() {
     throw error;
   }
 }
+
+//create data in tables section
 async function createInitialUsers() {
   try {
     console.log("Starting to create users...");
@@ -72,6 +101,8 @@ async function createInitialUsers() {
     throw error;
   }
 }
+
+
 async function createInitialPosts() {
   try {
     console.log("Starting to create posts...");
@@ -92,14 +123,40 @@ async function createInitialPosts() {
       content: "Thissdfasdff is my first post. I hope I love writing blogs as much as I love writing them."
     });
 
-
-    
+        
     console.log("Finished creating posts!");
   } catch(error) {
     console.error("Error creating posts!");
     throw error;
   }
 }
+
+
+async function createInitialTags() {
+  try {
+    console.log("Starting to create tags...");
+
+    const [happy, sad, inspo, catman] = await createTags([
+      { name: '#happy' },
+      { name: '#worst-day-ever' },
+      { name: '#youcandoanything' },
+      { name: '#catmandoeverything' }
+    ]);
+
+    const [postOne, postTwo, postThree] = await getAllPosts();
+
+    await addTagsToPost(postOne.id, [happy, inspo]);
+    await addTagsToPost(postTwo.id, [sad, inspo]);
+    await addTagsToPost(postThree.id, [happy, catman, inspo]);
+
+    console.log("Finished creating tags!");
+  } catch (error) {
+    console.log("Error creating tags!");
+    throw error;
+  }
+}
+
+
 
 async function rebuildDB() {
   try {
@@ -109,6 +166,8 @@ async function rebuildDB() {
     await createTables();
     await createInitialUsers();
     await createInitialPosts();
+    await createInitialPosts();
+    await createInitialTags();
   } catch (error) {
     throw error;
   }
@@ -124,6 +183,7 @@ async function testDB() {
     console.log("getAllPosts:", posts);
     console.log("Result:", users);
     console.log("Calling updateUser on users[0]")
+
     const updateUserResult = await updateUser(users[0].id, {
       name: "Newname Sogood",
       location: "Lesterville, MO"
