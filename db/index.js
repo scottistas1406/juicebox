@@ -43,16 +43,16 @@ client.connect()
 
   async function getAllPosts() {
   try {
-    const { rows: postIds } = await client.query(`
-      SELECT id
+    const { rows } = await client.query(`
+      SELECT *
       FROM posts;
     `);
 
-    const posts = await Promise.all(
-      postIds.map((post) => getPostById(post.id))
-    );
+    //const posts = await Promise.all(
+    //  postIds.map((post) => getPostById(post.id))
+   // );
 
-    return posts;
+    return rows
   } catch (error) {
     throw error;
   }
