@@ -276,6 +276,15 @@ client.connect()
       throw error;
     }
   }
+
+  async function getAllTags()
+   {
+    const { rows } = await client.query(
+      `SELECT *
+      FROM tags;
+      `);
+    return rows;
+  }
   
   
   
@@ -296,7 +305,9 @@ module.exports = {
   post_tags,
   getPostById,
   getUserById,
-  getPostsByUser
+  getPostsByUser,
+  getAllTags
+
 };
 
 
