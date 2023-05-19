@@ -61,14 +61,18 @@ client.connect()
   async function createPost({
     authorId,
     title,
-    content
+    content,
+    tags=[]
   }) {
     try {
       const {rows} = await client.query(` INSERT INTO posts("authorID", title, content)
       VALUES ($1, $2, $3)
       RETURNING*;
       `,[authorId,title,content]);
-      return rows
+      const tagList = await createTags(tags);
+      //return rows
+      
+      return await addTagsToPost(post.id, tagList);
   
     } catch (error) {
       throw error;
@@ -153,6 +157,7 @@ client.connect()
         VALUES ($1, $2)
         ON CONFLICT ("postId", "tagId") DO NOTHING;
       `, [postId, tagId]);
+      console.log('running createposttage')
     } catch (error) {
       throw error;
     }
@@ -187,7 +192,7 @@ client.connect()
         SELECT tags.*
         FROM tags
         JOIN post_tags ON tags.id=post_tags."tagId"
-        WHERE post_tags."postId"=$1;
+        WHERE post_tags.postId=$1;
       `, [postId]);
       
   
