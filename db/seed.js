@@ -107,21 +107,21 @@ async function createInitialPosts() {
     const [albert, sandra, glamgal] = await getAllUsers();
 
     const post1 = await createPost({
-      authorID: albert.id,
+      authorid: albert.id,
       title: "First Post",
       content: "This is my first post. I hope I love writing blogs as much as I love writing them.",
       tags: [{ name: '#happy' }, { name: '#youcandoanything' }]
     });
 
     const post2 = await createPost({
-      authorID: sandra.id,
+      authorid: sandra.id,
       title: "Second Post",
       content: "This is my second post. Writing blogs is my passion!",
       tags: [{ name: '#worst-day-ever' }, { name: '#youcandoanything' }]
     });
 
     const post3 = await createPost({
-      authorID: glamgal.id,
+      authorid: glamgal.id,
       title: "Third Post",
       content: "This is my third post. I'm excited to share my thoughts with you all.",
       tags: [{ name: '#happy' }, { name: '#catmandoeverything' }, { name: '#youcandoanything' }]

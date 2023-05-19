@@ -64,13 +64,13 @@ client.connect()
   }
   
   async function createPost({
-    authorID,
+    authorid,
     title,
     content,
     tags=[]
   }) {
     try {
-      const {rows} = await client.query(` INSERT INTO posts(authorID, title, content)
+      const {rows} = await client.query(` INSERT INTO posts(authorid, title, content)
       VALUES ($1, $2, $3)
       RETURNING*;
       `,[authorid,title,content]);
@@ -161,7 +161,7 @@ client.connect()
       const { rows: postid } = await client.query(`
         SELECT id 
         FROM posts 
-        WHERE authorID=${userId};
+        WHERE authorid=${userId};
       `);
   
       const posts = await Promise.all(
@@ -194,12 +194,12 @@ client.connect()
         SELECT id, username, name, location
         FROM users
         WHERE id=$1;
-      `, [post.authorID])
+      `, [post.authorid])
   
       post.tags = tags;
       post.author = author;
   
-      delete post.authorID;
+      delete post.authorid;
   
       return post;
     } catch (error) {
@@ -265,7 +265,7 @@ client.connect()
     }
   }
   async function updatePost(id, fields = {}) {
-    const { authorID, ...otherFields } = fields;
+    const { authorid, ...otherFields } = fields;
   
     const setString = Object.keys(otherFields)
       .map((key, index) => `"${key}"=$${index + 1}`)
