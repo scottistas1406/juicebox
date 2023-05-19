@@ -206,6 +206,19 @@ client.connect()
       throw error;
     }
   }
+  async function getUserByUsername(username) {
+    try {
+      const { rows: [user] } = await client.query(`
+        SELECT *
+        FROM users
+        WHERE username=$1;
+      `, [username]);
+  
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
   
   
 
@@ -285,6 +298,7 @@ client.connect()
       `);
     return rows;
   }
+ 
   
   
   
@@ -306,7 +320,8 @@ module.exports = {
   getPostById,
   getUserById,
   getPostsByUser,
-  getAllTags
+  getAllTags,
+  getUserByUsername
 
 };
 
