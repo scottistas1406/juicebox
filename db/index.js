@@ -2,6 +2,7 @@ const { Client } = require('pg');
 
 
 
+
 const connectionString = process.env.DATABASE_URL || 'postgres://scott@localhost:5432/juicebox-dev';
 const client = new Client({ connectionString });
 
@@ -43,35 +44,39 @@ client.connect()
   }
 
   async function getAllPosts() {
-  try {
-    const { rows } = await client.query(`
-      SELECT *
-      FROM posts;
-    `);
-
-    //const posts = await Promise.all(
-    //  postIds.map((post) => getPostById(post.id))
-   // );
-
-    return rows
-  } catch (error) {
-    throw error;
+    try {
+      const { rows: postid } = await client.query(`
+        SELECT id 
+        FROM posts;
+      `);
+  
+      const posts = await Promise.all(
+        postid.map((post) => {
+          console.log('post:', post);
+          return getPostById(post.id);
+        })
+      );
+  
+      return posts;
+    } catch (error) {
+      throw error;
+    }
   }
-}
+  
   async function createPost({
-    authorId,
+    authorID,
     title,
     content,
     tags=[]
   }) {
     try {
-      const {rows} = await client.query(` INSERT INTO posts("authorID", title, content)
+      const {rows} = await client.query(` INSERT INTO posts(authorID, title, content)
       VALUES ($1, $2, $3)
       RETURNING*;
-      `,[authorId,title,content]);
-      const tagList = await createTags(tags);
-      //return rows
+      `,[authorid,title,content]);
       
+      const post = rows[0];
+      const tagList = await createTags(tags);
       return await addTagsToPost(post.id, tagList);
   
     } catch (error) {
@@ -88,7 +93,7 @@ client.connect()
   }
   async function post_tags() {
     const { rows } = await client.query(
-      `SELECT id, 
+      `SELECT id 
       FROM tags;
       `);
     return rows;
@@ -150,28 +155,17 @@ client.connect()
       throw error;
     }
   }
-  async function createPostTag(postId, tagId) {
-    try {
-      await client.query(`
-        INSERT INTO post_tags("postId", "tagId")
-        VALUES ($1, $2)
-        ON CONFLICT ("postId", "tagId") DO NOTHING;
-      `, [postId, tagId]);
-      console.log('running createposttage')
-    } catch (error) {
-      throw error;
-    }
-  }
+  
   async function getPostsByUser(userId) {
     try {
-      const { rows: postIds } = await client.query(`
+      const { rows: postid } = await client.query(`
         SELECT id 
         FROM posts 
-        WHERE "authorId"=${userId};
+        WHERE authorID=${userId};
       `);
   
       const posts = await Promise.all(
-        postIds.map((post) => getPostById(post.id))
+        postid.map((post) => getPostById(post.id))
       );
   
       return posts;
@@ -179,33 +173,33 @@ client.connect()
       throw error;
     }
   }
-  async function getPostById(postId) {
+  async function getPostById(postid) {
     try {
      
       const { rows: [ post ]  } = await client.query(`
         SELECT *
         FROM posts
         WHERE id=$1;
-      `, [postId]);
+      `, [postid]);
   
       const { rows: tags } = await client.query(`
         SELECT tags.*
         FROM tags
-        JOIN post_tags ON tags.id=post_tags."tagId"
-        WHERE post_tags.postId=$1;
-      `, [postId]);
+        JOIN post_tags ON tags.id=post_tags."tagid"
+        WHERE post_tags.postid=$1;
+      `, [postid]);
       
   
       const { rows: [author] } = await client.query(`
         SELECT id, username, name, location
         FROM users
         WHERE id=$1;
-      `, [post.authorId])
+      `, [post.authorID])
   
       post.tags = tags;
       post.author = author;
   
-      delete post.authorId;
+      delete post.authorID;
   
       return post;
     } catch (error) {
@@ -225,7 +219,22 @@ client.connect()
       throw error;
     }
   }
+  async function createPostTag(postid, tagid) {
+    try {
+      const { rows } = await client.query(
+        `
+        INSERT INTO post_tags("postid", "tagid")
+        VALUES ($1, $2)
+        RETURNING *;
+        `,
+        [postid, tagid]
+      );
   
+      return rows[0];
+    } catch (error) {
+      throw error;
+    }
+  }
   
 
 
@@ -282,15 +291,15 @@ client.connect()
       throw error;
     }
   }
-  async function addTagsToPost(postId, tagList) {
+  async function addTagsToPost(postid, tagList) {
     try {
       const createPostTagPromises = tagList.map(
-        tag => createPostTag(postId, tag.id)
+        tag => createPostTag(postid, tag.id)
       );
   
       await Promise.all(createPostTagPromises);
   
-      return await getPostById(postId);
+      return await getPostById(postid);
     } catch (error) {
       throw error;
     }
